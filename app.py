@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, request, render_template
 
 app = Flask(__name__)
 
@@ -10,7 +10,13 @@ def hello_world():
 
 @app.route('/spotify/callback')
 def spotify_handler() -> str:
-    return "YOU DID IT!"
+    site_args = request.args
+    code = site_args.get('code')
+    if code:
+        with open("_auth_code.py", "w") as file:
+            file.write(f"auth_code = '{code}'")
+        #quit()
+    return render_template("sp_callback.html")
 
 
 if __name__ == '__main__':
