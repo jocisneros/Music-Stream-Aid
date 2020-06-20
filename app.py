@@ -9,13 +9,12 @@ def hello_world():
 
 
 @app.route('/spotify/callback')
-def spotify_handler() -> str:
+def spotify_handler():
     site_args = request.args
     code = site_args.get('code')
     if code:
-        with open("_auth_code.py", "w") as file:
-            file.write(f"auth_code = '{code}'")
-        #quit()
+        with open("_auth_code.txt", "w") as file:
+            file.write(code)
     return render_template("sp_callback.html")
 
 

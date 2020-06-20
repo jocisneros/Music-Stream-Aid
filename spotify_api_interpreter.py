@@ -2,6 +2,7 @@ import requests
 import urllib.parse
 import base64
 from client_cred import client_id, client_secret
+from json.decoder import JSONDecodeError
 
 base_url = 'https://accounts.spotify.com/'
 
@@ -36,7 +37,6 @@ class SpInterpreter:
         self.auth_header = {'Authorization': f'Basic {client_data_encode}'}
 
         token_data = requests.post(access_token_url, data=auth_html_data, headers=self.auth_header).json()
-
         self.access_token = token_data['access_token']
         self.token_expiration = int(token_data['expires_in'])
         self.refresh_token = token_data['refresh_token']
@@ -53,4 +53,10 @@ class SpInterpreter:
         self.access_token = token_data["access_token"]
 
     def get_json_data(self, url: str) -> dict:
-        return requests.get(url, headers=self.general_html_header).json()
+        user_request = requests.get(url, headers=self.general_html_header)
+        try:
+            json_data = user_request.json()
+        except JSONDecodeError:
+            print(f"JSONDecodeError, request_response={user_request}")
+            return {}
+        return json_data
