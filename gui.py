@@ -16,22 +16,24 @@ def window_preset(master):
 root = tk.Tk()
 home_image = PhotoImage(file=r"assets//background_placeholder.png")
 sp_login_image = PhotoImage(file=r"assets//spotify_login.png")
+temp_art = PhotoImage(file=r"assets//temp_album.png")
 song = StringVar()
-queue_frame = tk.Frame(root)
-
-album_art = tk.Label()
 user = None
+
+FONT_SIZE = 10
+TYPE_FACE = "Roboto"
+# Rate at which the GUI is updated: Every 0.1s
+UPDATE_SPEED = 100
 
 
 def update_current_song():
-    global user
     if user:
         song.set(user.get_current_track().track_info())
 
 
 def repeater(master):
     update_current_song()
-    root.after(100, repeater, master)
+    root.after(UPDATE_SPEED, repeater, master)
 
 
 class StartGUI:
@@ -67,29 +69,45 @@ class StartGUI:
 class HomeGUI:
     def __init__(self, master, auth_code):
         self.root = master
-        master.geometry("1000x500")
+        master.geometry("632x500")
 
         # Frame Declarations: User, Middle, and Queue
-        self.user_frame = tk.Frame(master, bg="#191414")
-        self.user_frame.grid(row=0, columnspan=10)
-        self.middle_frame = tk.Frame(master, bg="#191414", width=200, height=500)
-        self.middle_frame.grid(row=0, column=11)
-        self.queue_frame = tk.Frame(master, bg="#191414")
-        self.queue_frame.grid(row=0, column=30, columnspan=10)
+        self.user_frame = tk.Frame(master, bg="#2d2d2d")
+        self.user_frame.grid(row=0)
+        self.queue_frame = tk.Frame(master, bg="#2d2d2d")
+        self.queue_frame.grid(row=1)
 
         global user, song
         user = User(auth_code)
 
-        # Label and Button Declarations
-        tk.Label(self.user_frame, text="Current User:").grid(row=0, column=1)
-        user_name = tk.Label(self.user_frame, text=f"{user.get_display_name()}")
-        user_name.grid(row=1, column=1)
-        tk.Label(self.queue_frame, text="Current Song").grid(row=0, column=11)
-        song_label = tk.Label(self.queue_frame, textvariable=song)
-        song_label.grid(row=1, column=11)
+        # Label and Button Declarations for User Frame
+        tk.Label(self.user_frame, text="Current User:", bg="#1e1e1e", fg="white", width=22,
+                 font=f"{TYPE_FACE} {FONT_SIZE}").grid(row=0)
+        user_name = tk.Label(self.user_frame, text=f"{user.get_display_name()}", bg="#2d2d2d", fg="white",
+                             font=f"{TYPE_FACE} {FONT_SIZE + 1}")
+        user_name.grid(row=1)
+        tk.Label(self.user_frame, text="Current Song", bg="#1e1e1e", fg="white",
+                 width=65, font=f"{TYPE_FACE} 10").grid(row=2, column=1, columnspan=2)
+        song_label = tk.Label(self.user_frame, width=45, textvariable=song, anchor="w", font=f"{TYPE_FACE} {FONT_SIZE}")
+        song_label.grid(row=3, column=1, padx=5)
+        album_art_label = tk.Label(self.user_frame, image=temp_art)
+        album_art_label.grid(row=3, padx=5, pady=5)
+        song_popout = tk.Button(self.user_frame, text="Popout Current Song", font=f"{TYPE_FACE} {FONT_SIZE}",
+                                command=self.song_popout)
+        song_popout.grid(row=3, column=2, padx=5)
 
-        song_popout = tk.Button(self.queue_frame, text="Popout Current Song")
-        song_popout.grid(row=1, column=12)
+        # Label and Button Declarations for Queue Frame
+        tk.Label(self.queue_frame, text="Requested Queue", width=65, bg="#1e1e1e", fg="white",
+                 font=f"{TYPE_FACE} {FONT_SIZE}").grid(row=0)
+        scrollbar = tk.Scrollbar(self.queue_frame)
+        scrollbar.grid(row=1)
+
+    def song_popout(self):
+        popout = tk.Toplevel(self.root)
+        popout.title("Song")
+        popout.iconbitmap(r"assets//bot_logo.ico")
+        tk.Label(popout, textvariable=song, bg="#00ff00", fg="white", font=f"{TYPE_FACE} {30}", width=45,
+                 anchor="w").pack()
 
 
 if __name__ == "__main__":
