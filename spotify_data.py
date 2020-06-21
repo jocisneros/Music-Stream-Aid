@@ -6,7 +6,7 @@ PLAYER_DATA_STATE = False
 
 
 class Track:
-    def __init__(self, json_data: dict):
+    def __init__(self, json_data={}):
         if json_data:
             self._title = json_data["name"]
             self._album = json_data["album"]["name"]
@@ -17,8 +17,8 @@ class Track:
             # Album Art Notes: In the returned Spotify Data exists an "images" list within the album dictionary
             # in this list includes ~3 different resolutions of the same image, I am assigning the 2nd highest
             # resolution image to be returned to be scaled down to fit whatever resolution the GUI requires.
-            album_art_url = json_data["album"]["images"][1]["url"]
-            self._album_art = requests.get(album_art_url).content
+            self._album_art_url = json_data["album"]["images"][1]["url"]
+            #self._album_art = requests.get(self.album_art_url).content
         else:
             self._title = "No Current Song"
             self._album = ""
@@ -33,15 +33,25 @@ class Track:
     def get_album_title(self) -> str:
         return self._album
 
-    def get_album_art(self) -> bytes:
-        return self._album_art
+    def get_album_art(self) -> str:  #bytes:
+        return self._album_art_url
+        #return self._album_art
 
     def get_artists(self) -> [str]:
         return self._artists
 
+    def get_id(self) -> int:
+        return self._id
+
     def track_info(self) -> str:
         global PLAYER_DATA_STATE
         return f'"{self._title}" by ' + ", ".join(self._artists) if PLAYER_DATA_STATE else self._title
+
+    def __eq__(self, other):
+        if type(other) == type(self):
+            return other.get_id() == self.get_id()
+        else:
+            raise TypeError(f"spotify_data.Track: Cannot compare Track object and {type(other)} object")
 
     def __len__(self):
         return self._track_len

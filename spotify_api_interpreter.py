@@ -38,8 +38,8 @@ class SpInterpreter:
 
         token_data = requests.post(access_token_url, data=auth_html_data, headers=self.auth_header).json()
         self.access_token = token_data['access_token']
-        self.token_expiration = int(token_data['expires_in'])
-        self.refresh_token = token_data['refresh_token']
+        self._token_expiration = int(token_data['expires_in'])
+        self._refresh_token = token_data['refresh_token']
 
         self.general_html_header = {'Accept': 'application/json',
                                     'Content-Type': 'application/json',
@@ -48,9 +48,11 @@ class SpInterpreter:
         self.auth_code = auth_code
 
     def update_token(self):
-        refresh_body = {"grant_type": "refresh_token", "refresh_token": self.refresh_token}
+        # print(f"PRE_UPDATE: {self.access_token}")
+        refresh_body = {"grant_type": "refresh_token", "refresh_token": self._refresh_token}
         token_data = requests.post(access_token_url, data=refresh_body, headers=self.auth_header).json()
         self.access_token = token_data["access_token"]
+        # print(f"POST_UPDATE: {self.access_token}")
 
     def get_json_data(self, url: str) -> dict:
         user_request = requests.get(url, headers=self.general_html_header)
@@ -60,3 +62,6 @@ class SpInterpreter:
             print(f"JSONDecodeError, request_response={user_request}")
             return {}
         return json_data
+
+    def get_expiration_time(self) -> int:
+        return self._token_expiration
