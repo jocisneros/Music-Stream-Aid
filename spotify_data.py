@@ -18,7 +18,7 @@ class Track:
             # in this list includes ~3 different resolutions of the same image, I am assigning the 2nd highest
             # resolution image to be returned to be scaled down to fit whatever resolution the GUI requires.
             self._album_art_url = json_data["album"]["images"][1]["url"]
-            #self._album_art = requests.get(self.album_art_url).content
+            self._album_art = requests.get(self._album_art_url).content
         else:
             self._title = "No Current Song"
             self._album = ""
@@ -33,27 +33,30 @@ class Track:
     def get_album_title(self) -> str:
         return self._album
 
-    def get_album_art(self) -> str:  #bytes:
-        return self._album_art_url
-        #return self._album_art
+    def get_album_art(self) -> bytes:
+        #return self._album_art_url
+        return self._album_art
 
     def get_artists(self) -> [str]:
         return self._artists
 
-    def get_id(self) -> int:
+    def get_id(self) -> str:
         return self._id
 
-    def track_info(self) -> str:
+    def get_track_info(self) -> str:
         global PLAYER_DATA_STATE
         return f'"{self._title}" by ' + ", ".join(self._artists) if PLAYER_DATA_STATE else self._title
 
-    def __eq__(self, other):
+    def __bool__(self) -> bool:
+        return bool(self._id)
+
+    def __eq__(self, other) -> bool:
         if type(other) == type(self):
             return other.get_id() == self.get_id()
         else:
             raise TypeError(f"spotify_data.Track: Cannot compare Track object and {type(other)} object")
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._track_len
 
     def __str__(self) -> str:
@@ -113,7 +116,7 @@ class User(SpInterpreter):
 
     def get_current_track(self) -> Track:
         self.update_player_data()
-        return Track(self.player_data["item"] if self.player_data else self.player_data)
+        return Track(self.player_data["item"] if self.player_data and self.player_data.get("item") else {})
 
     def get_playlist(self) -> Playlist:
         self.update_player_data()

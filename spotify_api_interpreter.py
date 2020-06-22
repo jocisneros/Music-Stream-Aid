@@ -59,7 +59,7 @@ class SpInterpreter:
         try:
             json_data = user_request.json()
         except JSONDecodeError:
-            print(f"JSONDecodeError, request_response={user_request}")
+            # print(f"JSONDecodeError, request_response={user_request}")
             return {}
         return json_data
 

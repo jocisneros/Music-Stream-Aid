@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import StringVar
 from PIL import Image, ImageColor
 from PIL.ImageTk import PhotoImage
+from io import BytesIO
 import webbrowser
 import spotify_api_interpreter as sp_api_int
 from spotify_data import User
@@ -16,8 +17,12 @@ def window_preset(master):
 root = tk.Tk()
 home_image = PhotoImage(file=r"assets//background_placeholder.png")
 sp_login_image = PhotoImage(file=r"assets//spotify_login.png")
-temp_art = PhotoImage(file=r"assets//temp_album.png")
-song = StringVar()
+album_art = PhotoImage(file=r"assets//temp_album.png")
+track_title = StringVar()
+track_artists = StringVar()
+track_album = StringVar()
+track_info = StringVar()
+art_label = None
 current_track = None
 user = None
 
@@ -29,13 +34,20 @@ TIME_ELAPSED = 0
 
 
 def update_current_song():
-    global current_track
+    global current_track, art_label, album_art
     if user:
         user_track = user.get_current_track()
         if not current_track or current_track != user_track:
             # print("SONG CHANGE")
             current_track = user_track
-            song.set(current_track.track_info())
+            if current_track:
+                art_image = Image.open(BytesIO(current_track.get_album_art()))
+                album_art = PhotoImage(image=art_image.resize((150, 150)))
+                art_label.config(image=album_art)
+            track_title.set(current_track.get_title())
+            track_artists.set(", ".join(current_track.get_artists()))
+            track_album.set(current_track.get_album_title())
+            track_info.set(current_track.get_track_info())
 
 
 def token_status():
@@ -89,13 +101,15 @@ class StartGUI:
 class HomeGUI:
     def __init__(self, master, auth_code):
         self.root = master
-        master.geometry("632x500")
+        master.geometry("756x240")
 
         # Frame Declarations: User, Middle, and Queue
         self.user_frame = tk.Frame(master, bg="#2d2d2d")
         self.user_frame.grid(row=0)
-        self.queue_frame = tk.Frame(master, bg="#2d2d2d")
-        self.queue_frame.grid(row=1)
+        separator = tk.Frame(master, bg="#1e1e1e", width=5, height=240)
+        separator.grid(row=0, column=1)
+        self.queue_frame = tk.Frame(master, bg="#2d2d2d", height=240)
+        self.queue_frame.grid(row=0, column=2)
 
         global user, song
         user = User(auth_code)
@@ -108,26 +122,47 @@ class HomeGUI:
                              font=f"{TYPE_FACE} {FONT_SIZE + 1}")
         user_name.grid(row=1)
 
-        tk.Label(self.user_frame, text="Current Song", bg="#1e1e1e", fg="white",
-                 width=65, font=f"{TYPE_FACE} 10").grid(row=2, column=1, columnspan=2)
+        tk.Label(self.user_frame, text="Current Song", bg="#1e1e1e", fg="white", width=45,
+                 font=f"{TYPE_FACE} 10").grid(row=2, column=1, columnspan=2)
 
-        song_label = tk.Label(self.user_frame, width=45, textvariable=song, anchor="w", font=f"{TYPE_FACE} {FONT_SIZE}")
-        song_label.grid(row=3, column=1, padx=5)
+        # Track Title Labels
+        tk.Label(self.user_frame, text="Title: ", anchor="w", bg="#1e1e1e", fg="white", width=10,
+                 font=f"{TYPE_FACE} {FONT_SIZE}").grid(row=3, column=1, sticky="w")
+        title_label = tk.Label(self.user_frame, textvariable=track_title, anchor="w", bg="#2d2d2d", fg="white",
+                               width=35, font=f"{TYPE_FACE} {FONT_SIZE}")
+        title_label.grid(row=3, column=2, sticky="w", padx=5)
 
-        album_art_label = tk.Label(self.user_frame, image=temp_art)
-        album_art_label.grid(row=3, padx=5, pady=5)
+        # Track Artist Labels
+        tk.Label(self.user_frame, text="By: ", anchor="w", bg="#1e1e1e", fg="white", width=10,
+                 font=f"{TYPE_FACE} {FONT_SIZE}").grid(row=4, column=1, sticky="w")
+        artists_label = tk.Label(self.user_frame, textvariable=track_artists, bg="#2d2d2d", fg="white",
+                                 width=35, anchor="w", font=f"{TYPE_FACE} {FONT_SIZE}")
+        artists_label.grid(row=4, column=2, sticky="w", padx=5)
 
-        song_popout = tk.Button(self.user_frame, text="Popout Current Song", font=f"{TYPE_FACE} {FONT_SIZE}",
-                                command=self.song_popout)
-        song_popout.grid(row=3, column=2, padx=5)
+        # Track Album Labels
+        tk.Label(self.user_frame, text="Album: ", anchor="w", bg="#1e1e1e", fg="white", width=10,
+                 font=f"{TYPE_FACE} {FONT_SIZE}").grid(row=5, column=1, sticky="w")
+        album_label = tk.Label(self.user_frame, textvariable=track_album, anchor="w", bg="#2d2d2d", fg="white",
+                               width=35, font=f"{TYPE_FACE} {FONT_SIZE}")
+        album_label.grid(row=5, column=2, sticky="w", padx=5)
+
+        global art_label
+        art_label = tk.Label(self.user_frame, image=album_art)
+        art_label.grid(row=3, padx=5, pady=10, rowspan=4)
+        # album_art_label = tk.Label(self.user_frame, image=temp_art)
+        # album_art_label.grid(row=3, padx=5, pady=10, rowspan=4)
+
+        track_popout = tk.Button(self.user_frame, text="Popout Current Track", font=f"{TYPE_FACE} {FONT_SIZE}",
+                                 command=self.track_popout)
+        track_popout.grid(row=6, column=2, padx=5, sticky="w")
 
         # Label and Button Declarations for Queue Frame
-        tk.Label(self.queue_frame, text="Requested Queue", width=65, bg="#1e1e1e", fg="white",
+        tk.Label(self.queue_frame, text="Requested Queue", bg="#1e1e1e", fg="white", width=35,
                  font=f"{TYPE_FACE} {FONT_SIZE}").grid(row=0)
         scrollbar = tk.Scrollbar(self.queue_frame)
-        scrollbar.grid(row=1)
+        scrollbar.grid(row=1, sticky="e", ipady=84)
 
-    def song_popout(self):
+    def track_popout(self):
         popout = tk.Toplevel(self.root)
         settings_menu = tk.Menu(popout)
         popout.config(menu=settings_menu)
@@ -135,14 +170,12 @@ class HomeGUI:
         edit_menu = tk.Menu(settings_menu)
         settings_menu.add_cascade(label="Edit", menu=edit_menu)
 
-        edit_menu.add_command(label="Change Typeface")
-        edit_menu.add_command(label="Change Font")
+        edit_menu.add_command(label="Text Settings")
         edit_menu.add_command(label="Change Background Color", command=self.change_bg_color)
-        edit_menu.add_command(label="Change Text Cutout Size")
-        popout.title("Song")
+        popout.title("Track")
         popout.iconbitmap(r"assets//bot_logo.ico")
-        self.bg_color = tk.Label(popout, textvariable=song, bg="#00ff00", fg="white", font=f"{TYPE_FACE} {30}",
-                                 width=45, anchor="w")
+        self.bg_color = tk.Label(popout, textvariable=track_info, bg="#00ff00", fg="white", font=f"{TYPE_FACE} {30}",
+                                 anchor="w")
         self.bg_color.pack()
 
     def change_bg_color(self) -> None:
@@ -154,26 +187,30 @@ class HomeGUI:
         red = StringVar()
         green = StringVar()
         blue = StringVar()
-        red.set("0")
-        green.set("255")
-        blue.set("0")
         current_color = self.bg_color["bg"]
+        bg_rgb = ImageColor.getrgb(current_color)
+        red.set(str(bg_rgb[0]))
+        green.set(str(bg_rgb[1]))
+        blue.set(str(bg_rgb[2]))
 
         def update_color():
             nonlocal current_color
-            current_color = rgb_to_hex((int(red.get()), int(green.get()), int(blue.get())))
+            colors = red.get(), green.get(), blue.get()
+            r, g, b = [int(c) if is_valid_rgb(c) else int(ImageColor.getrgb(preview["bg"])[i])
+                       for i, c in enumerate(colors)]
+            current_color = rgb_to_hex((r, g, b))
 
-        def is_valid_rgb(value: int) -> bool:
-            return 0 <= value <= 255 if type(value) is int else False
+        def is_valid_rgb(value: str) -> bool:
+            return 0 <= int(value) <= 255 if value.isnumeric() else False
 
         def preview_status():
-            r, g, b = int(red.get()), int(green.get()), int(blue.get())
+            r, g, b = red.get(), green.get(), blue.get()
             rgb_status = [("R", is_valid_rgb(r)), ("G", is_valid_rgb(g)), ("B", is_valid_rgb(b))]
             if all([c[1] for c in rgb_status]):
-                preview.config(bg=rgb_to_hex((r, g, b)))
+                preview.config(bg=rgb_to_hex((int(r), int(g), int(b))))
                 status.set("Valid")
             else:
-                status_msg = f"Invalid Inputs For: " + ", ".join(f"{c[0]}" for c in rgb_status)
+                status_msg = f"Invalid Inputs For: " + ", ".join(f"{c[0]}" for c in rgb_status if not c[1])
                 status.set(status_msg)
 
         def change_bg_color(bg_label: tk.Label):
