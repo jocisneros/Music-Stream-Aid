@@ -1,6 +1,6 @@
-from spotify_api_interpreter import SpInterpreter, api_base_url
 import requests
-import re
+
+from spotify_api_interpreter import SpInterpreter, api_base_url
 
 PLAYER_DATA_STATE = False
 
@@ -28,22 +28,28 @@ class Track:
             self._album_art = bytes()
 
     def get_title(self) -> str:
+        """Returns title of the track."""
         return self._title
 
     def get_album_title(self) -> str:
+        """Returns album title of the track."""
         return self._album
 
     def get_album_art(self) -> bytes:
+        """Returns a bytes object of the album art of the track."""
         #return self._album_art_url
         return self._album_art
 
     def get_artists(self) -> [str]:
+        """Returns a list of the artists on the track."""
         return self._artists
 
     def get_id(self) -> str:
+        """Returns Spotify id of the track."""
         return self._id
 
     def get_track_info(self) -> str:
+        """Returns a formatted string of the track's info in format: "Track Title" by Artists."""
         global PLAYER_DATA_STATE
         return f'"{self._title}" by ' + ", ".join(self._artists) if PLAYER_DATA_STATE else self._title
 
@@ -78,24 +84,35 @@ class Playlist:
             self._tracks = []
 
     def get_title(self) -> str:
+        """Returns title of the playlist."""
         return self._title
 
     def get_author(self) -> str:
+        """Returns author/creator name of the playlist."""
         return self._author
 
     def get_track_titles(self) -> [str]:
+        """Returns list of titles of all tracks in the playlist."""
         return [track.get_title() for track in self._tracks]
 
     def get_tracks(self) -> [Track]:
+        """Returns list of tracks in the playlist."""
         return self._tracks
 
     def playlist_info(self) -> str:
+        """Returns a formatted string of the playlist's info in format: "Playlist Title" by Author."""
         return f'"{self._title}" by {self._author}'
 
     def add_missing_track(self, track_data: dict) -> None:
+        """
+        Adds missing tracks to playlist, intended to complete playlist
+        with over 100 songs as Spotify's API only sends 100 tracks per
+        request.
+        """
         self._tracks.append(Track(track_data))
 
     def get_num_tracks(self) -> int:
+        """Returns true number of tracks on the playlist."""
         return self._num_tracks
 
     def __len__(self) -> int:
@@ -112,13 +129,16 @@ class User(SpInterpreter):
         self.player_data = self.get_json_data(api_base_url + "me/player")
 
     def get_display_name(self) -> str:
+        """Returns User's display name."""
         return self.get_json_data(api_base_url + "me")["display_name"]
 
     def get_current_track(self) -> Track:
+        """Returns track object of currently playing Spotify track."""
         self.update_player_data()
         return Track(self.player_data["item"] if self.player_data and self.player_data.get("item") else {})
 
     def get_playlist(self) -> Playlist:
+        """Returns Playlist object for the context of the currently playing Spotify track."""
         self.update_player_data()
         data = self.player_data["context"]
         if data.get("href"):
@@ -134,16 +154,8 @@ class User(SpInterpreter):
 
         return user_playlist
 
-    def get_playback_art(self) -> str:
-        self.update_player_data()
-        if self.player_data:
-            images = self.player_data["item"]["album"]["images"]
-            medium_res = images[1]["url"]
-            return medium_res
-        else:
-            return ""
-
     def update_player_data(self) -> None:
+        """Updates data for player_data attribute"""
         self.player_data = self.get_json_data(api_base_url + "me/player")
         global PLAYER_DATA_STATE
         PLAYER_DATA_STATE = True if self.player_data else False

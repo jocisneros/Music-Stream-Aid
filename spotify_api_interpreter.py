@@ -1,8 +1,10 @@
-import requests
-import urllib.parse
 import base64
-from client_cred import client_id, client_secret
+import urllib.parse
 from json.decoder import JSONDecodeError
+
+import requests
+
+from client_cred import client_id, client_secret
 
 base_url = 'https://accounts.spotify.com/'
 
@@ -48,6 +50,7 @@ class SpInterpreter:
         self.auth_code = auth_code
 
     def update_token(self):
+        """Refreshes access_token attribute, intended for use when access_token expires."""
         # print(f"PRE_UPDATE: {self.access_token}")
         refresh_body = {"grant_type": "refresh_token", "refresh_token": self._refresh_token}
         token_data = requests.post(access_token_url, data=refresh_body, headers=self.auth_header).json()
@@ -55,6 +58,7 @@ class SpInterpreter:
         # print(f"POST_UPDATE: {self.access_token}")
 
     def get_json_data(self, url: str) -> dict:
+        """Pushes GET requests to Spotify API given a valid URL."""
         user_request = requests.get(url, headers=self.general_html_header)
         try:
             json_data = user_request.json()
@@ -64,4 +68,5 @@ class SpInterpreter:
         return json_data
 
     def get_expiration_time(self) -> int:
+        """Returns expiration time for access_token attribute."""
         return self._token_expiration

@@ -1,9 +1,11 @@
 from multiprocessing import Process
+
 from app import app
 from gui import root, StartGUI, window_preset, repeater
 
 
 def start_gui() -> None:
+    """Starts Tkinter GUI (gui.py)."""
     window_preset(root)
     StartGUI(root)
     repeater(root)
@@ -11,6 +13,7 @@ def start_gui() -> None:
 
 
 def start_web() -> None:
+    """Starts Flask Web Server (app.py)."""
     app.run()
 
 

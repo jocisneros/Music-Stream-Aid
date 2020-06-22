@@ -1,9 +1,11 @@
 import tkinter as tk
+import webbrowser
+from io import BytesIO
 from tkinter import StringVar
+
 from PIL import Image, ImageColor
 from PIL.ImageTk import PhotoImage
-from io import BytesIO
-import webbrowser
+
 import spotify_api_interpreter as sp_api_int
 from spotify_data import User
 
@@ -34,6 +36,7 @@ TIME_ELAPSED = 0
 
 
 def update_current_song():
+    """Keeps track of currently playing track, updating the HomeGUI to reflect any changes."""
     global current_track, art_label, album_art
     if user:
         user_track = user.get_current_track()
@@ -51,6 +54,7 @@ def update_current_song():
 
 
 def token_status():
+    """Refreshes Spotify Access-Token once the expiration time has passed."""
     global TIME_ELAPSED
     if user:
         TIME_ELAPSED += UPDATE_SPEED
@@ -59,16 +63,20 @@ def token_status():
 
 
 def repeater(master):
+    """Repeats the following commands every UPDATE_SPEED milliseconds."""
     update_current_song()
     token_status()
     root.after(UPDATE_SPEED, repeater, master)
 
 
 def rgb_to_hex(rgb: (int, int, int)) -> str:
+    """Converts 3-Tuple of rgb int values to hex form, returning in # string form."""
     return "#" + "".join(str(hex(color))[2:] if color > 15 else f"0{str(hex(color))[2:]}" for color in rgb)
 
 
 class StartGUI:
+    # Starting GUI Window,
+    #   06/22/2020: Currently displays PlaceHolder image for possible future logo and "Log in with Spotify" button.
     def __init__(self, master: tk.Tk):
         self.root = master
         self.login_frame = tk.Frame(master)
@@ -82,6 +90,11 @@ class StartGUI:
         self.sp_login.pack(side=tk.TOP)
 
     def spotify_login(self) -> None:
+        """
+        When pressed, opens a browser window prompting the user to log-in to spotify,
+        providing all details on what information may be used. If logged in, changes
+        GUI to HomeGUI.
+        """
         self.hide_home_frame()
         webbrowser.open(sp_api_int.auth_url)
         status = "NOT_RECEIVED"
@@ -94,6 +107,9 @@ class StartGUI:
         HomeGUI(self.root, status)
 
     def hide_home_frame(self) -> None:
+        """
+        Destroys all widgets in login_frame
+        """
         for widget in self.login_frame.winfo_children():
             widget.destroy()
 
@@ -163,6 +179,7 @@ class HomeGUI:
         scrollbar.grid(row=1, sticky="e", ipady=84)
 
     def track_popout(self):
+        """Customizable window popout to view currently playing track."""
         popout = tk.Toplevel(self.root)
         settings_menu = tk.Menu(popout)
         popout.config(menu=settings_menu)
@@ -179,6 +196,7 @@ class HomeGUI:
         self.bg_color.pack()
 
     def change_bg_color(self) -> None:
+        """Provides a window popout to view possible background color changes to the track_popout window."""
         color = tk.Toplevel(self.root)
         color.title("Background Color")
         color.iconbitmap(r"assets//bot_logo.ico")
