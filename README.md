@@ -1,4 +1,4 @@
-# TwitchApp
+# Music Stream Aid
 A Python application that uses the web development capabilities of Flask,
 and the GUI capabilities of Tkinter. Will be used to aid livestreams on Twitch.tv
 
