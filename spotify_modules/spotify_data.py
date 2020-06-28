@@ -1,12 +1,13 @@
 import requests
 
-from spotify_api_interpreter import SpInterpreter, api_base_url
+from spotify_modules.spotify_interpreter import SpInterpreter, api_base_url
 
 PLAYER_DATA_STATE = False
 
 
 class Track:
     def __init__(self, json_data={}):
+        self.player_data = json_data
         if json_data:
             self._title = json_data["name"]
             self._album = json_data["album"]["name"]
@@ -17,10 +18,9 @@ class Track:
             # Album Art Notes: In the returned Spotify Data exists an "images" list within the album dictionary
             # in this list includes ~3 different resolutions of the same image, I am assigning the 2nd highest
             # resolution image to be returned to be scaled down to fit whatever resolution the GUI requires.
-            self._album_art_url = json_data["album"]["images"][1]["url"]
-            self._album_art = requests.get(self._album_art_url).content
+            self._art_url = json_data["album"]["images"][1]["url"]
         else:
-            self._title = "No Current Song"
+            self._title = "No Current Track"
             self._album = ""
             self._id = ""
             self._artists = []
@@ -37,8 +37,7 @@ class Track:
 
     def get_album_art(self) -> bytes:
         """Returns a bytes object of the album art of the track."""
-        #return self._album_art_url
-        return self._album_art
+        return requests.get(self._art_url).content if self.player_data else bytes()
 
     def get_artists(self) -> [str]:
         """Returns a list of the artists on the track."""
@@ -51,7 +50,7 @@ class Track:
     def get_track_info(self) -> str:
         """Returns a formatted string of the track's info in format: "Track Title" by Artists."""
         global PLAYER_DATA_STATE
-        return f'"{self._title}" by ' + ", ".join(self._artists) if PLAYER_DATA_STATE else self._title
+        return f'"{self._title}" by ' + ", ".join(self._artists) if self.player_data else self._title
 
     def __bool__(self) -> bool:
         return bool(self._id)

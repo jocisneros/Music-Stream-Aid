@@ -1,15 +1,18 @@
+import sys
 from multiprocessing import Process
 
 from app import app
 from gui import root, StartGUI, window_preset, repeater
+from logger import start_log
 
 
 def start_gui() -> None:
     """Starts Tkinter GUI (gui.py)."""
-    window_preset(root)
-    StartGUI(root)
-    repeater(root)
-    root.mainloop()
+    with open(start_log(), "a") as sys.stdout:
+        window_preset(root)
+        StartGUI(root)
+        repeater(root)
+        root.mainloop()
 
 
 def start_web() -> None:
