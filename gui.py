@@ -6,7 +6,8 @@ from tkinter import StringVar
 from PIL import Image, ImageColor
 from PIL.ImageTk import PhotoImage
 
-import spotify_modules.spotify_interpreter as sp_api_int
+import spotify_modules.spotify_interpreter as spotify_int
+import twitch_modules.twitch_interpreter as twitch_int
 from logger import log_print
 from spotify_modules.spotify_data import User
 
@@ -27,6 +28,7 @@ track_title = StringVar()
 track_artists = StringVar()
 track_album = StringVar()
 track_info = StringVar()
+streamer_name = StringVar()
 art_label = None
 current_track = None
 user = None
@@ -89,22 +91,28 @@ class StartGUI:
         self.twitch_opt = tk.BooleanVar()
 
         self.home_image = tk.Label(self.login_frame, image=home_image)
-        self.home_image.grid(row=0, columnspan=3)
+        self.home_image.grid(row=0, columnspan=4)
 
         self.sp_login = tk.Button(self.login_frame, bg="#191414", image=sp_login_image, relief="solid",
                                   command=self.spotify_login)
-        self.sp_login.grid(row=1, column=1)
+        self.sp_login.grid(row=1, column=1, columnspan=2)
 
         # Next Button
-        tk.Button(self.login_frame, text="Next", command=self.next).grid(row=4, column=2)
+        tk.Button(self.login_frame, text="Next", command=self.next).grid(row=4, column=3)
 
         # Twitch Bot Check
-        tk.Checkbutton(self.login_frame, text="Enable Twitch Bot?", variable=self.twitch_opt,
-                       onvalue=True, offvalue=False, command=self.enable_twitch_login).grid(row=2, column=1)
+        # Current Twitch API is not truly compatible with desktop-based apps such as this, must find a work-around.
 
-        # Twitch Login
-        self.twitch_login = tk.Button(self.login_frame, bg="#191414", image=twitch_login_image, relief="solid",
-                                      command=self._twitch_login)
+        # tk.Checkbutton(self.login_frame, text="Enable Twitch Bot?", variable=self.twitch_opt,
+        #               onvalue=True, offvalue=False, command=self.enable_twitch_login).grid(row=2, column=1,
+        #                                                                                    columnspan=2)
+
+        # Twitch Login: Will eventually add support for Twitch Login with OAUTH
+        # self.twitch_login = tk.Button(self.login_frame, bg="#191414", image=twitch_login_image, relief="solid",
+        #                              command=self._twitch_login)
+
+        # Twitch Username
+        # self.twitch_entry = tk.Entry(self.login_frame, textvariable=streamer_name)
 
     def spotify_login(self) -> None:
         """
@@ -112,23 +120,23 @@ class StartGUI:
         providing all details on what information may be used. If logged in, changes
         GUI to HomeGUI.
         """
-        webbrowser.open(sp_api_int.auth_url)
+        webbrowser.open(spotify_int.auth_url)
         status = "NOT_RECEIVED"
         while status == "NOT_RECEIVED" or not status:
-            with open("inter_comm.txt", "r") as file:
+            with open("spot_comm.txt", "r") as file:
                 status = file.read().strip()
-        with open("inter_comm.txt", "w") as file:
+        with open("spot_comm.txt", "w") as file:
             file.write("NOT_RECEIVED")
 
         if status.startswith("CODE "):
             self.sp_login.config(image=sp_logged_in_image, borderwidth=0, relief=tk.SUNKEN, command=lambda: None)
             self.auth_token = status[5:]
 
-    def enable_twitch_login(self) -> None:
-        if self.twitch_opt.get():
-            self.twitch_login.grid(row=3, column=1)
-        else:
-            self.twitch_login.grid_remove()
+    # def enable_twitch_login(self) -> None:
+    #     if self.twitch_opt.get():
+    #         self.twitch_login.grid(row=3, column=1)
+    #     else:
+    #         self.twitch_login.grid_remove()
 
     def next(self) -> None:
         if self.auth_token:
@@ -136,12 +144,7 @@ class StartGUI:
             HomeGUI(self.root, self.auth_token)
 
     def _twitch_login(self) -> None:
-        pass
-
-    # def hide_home_frame(self) -> None:
-    #     """Destroys all widgets in login_frame."""
-    #     for widget in self.login_frame.winfo_children():
-    #         widget.destroy()
+        webbrowser.open(twitch_int.auth_url)
 
 
 class HomeGUI:
@@ -223,7 +226,7 @@ class HomeGUI:
         popout.iconbitmap(r"assets//bot_logo.ico")
 
         self.bg_color = tk.Label(popout, textvariable=track_info, bg="#00ff00", fg="white", font=f"{TYPE_FACE} {30}",
-                                 width=45, anchor="w")
+                                 anchor="w")  # width=45, anchor="w")
         self.bg_color.pack()
 
     def change_bg_color(self) -> None:

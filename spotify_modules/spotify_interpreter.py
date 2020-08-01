@@ -4,7 +4,7 @@ from json.decoder import JSONDecodeError
 import requests
 
 from logger import log_print
-from secret.client_cred import SpotCredentials
+from secret.client_cred import SpotifyCredentials
 
 base_url = 'https://accounts.spotify.com/'
 
@@ -14,7 +14,7 @@ api_base_url = 'https://api.spotify.com/v1/'
 
 access_token_url = base_url + 'api/token'
 
-spotify_cred = SpotCredentials()
+spotify_cred = SpotifyCredentials()
 
 # Scopes provide the bot to view information of the user once they have granted access and logged in.
 #   playlist-read-private: used for viewing private playlists
@@ -26,7 +26,8 @@ query_parameters = urllib.parse.urlencode({
     'client_id': spotify_cred.get_id(), 'response_type': 'code',
     'redirect_uri': redirect_uri, 'scope': scopes,
     'code_challenge_method': "S256",
-    'code_challenge': spotify_cred.get_code_challenge()})
+    'code_challenge': spotify_cred.get_code_challenge()
+})
 
 auth_url = base_url + 'authorize?' + query_parameters
 

@@ -150,7 +150,6 @@ class User(SpInterpreter):
                     user_playlist.add_missing_track(track["track"])
         else:
             user_playlist = Playlist()
-
         return user_playlist
 
     def update_player_data(self) -> None:

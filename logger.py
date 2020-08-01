@@ -6,6 +6,7 @@ file_name_restrictions = r'\/:*?"<>|'
 
 
 def start_log() -> str:
+    """Creates new log txt file, specifying the current date."""
     today = datetime.today()
     log_path = f"logs//log ({today.year}-{today.month}-{today.day}).txt"
     log_num = 0
@@ -18,5 +19,6 @@ def start_log() -> str:
 
 
 def log_print(message: str) -> None:
+    """Special Print, adds time of execution prior to desired print message."""
     time_now = datetime.now()
     print(f"[{time_now.hour}:{time_now.minute}:{time_now.second}]: {message}")

@@ -13,12 +13,15 @@ class WebInterpreter:
     def set_token(self, value) -> None:
         self.access_token = value
 
-    def get_new_token_data(self, url: str, refresh_data=None, refresh_header=None) -> dict:
+    def update_token(self, url: str, refresh_data: {str: str}, refresh_header=None) -> None:
         old_token = self.access_token
-        if refresh_data:
-            token_data = requests.post(url, data=refresh_data, headers=self.auth_header).json()
+        if refresh_header:
+            token_data = requests.post(url, data=refresh_data, headers=refresh_header).json()
+        else:
+            token_data = requests.post(url, data=refresh_data).json()
+
         new_token = self.access_token
-        log_print(f"TOKEN UPDATE: Tokens Different? {old_token == new_token}")
+        log_print(f"TOKEN UPDATE: Tokens Different? {old_token != new_token}")
 
     @staticmethod
     def get_json_data(url: str, header: {str: str}) -> dict:

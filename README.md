@@ -10,9 +10,4 @@ Current 3rd Party Resources Used:
 - Pillow library
 - Spotify Web API
 
-
-Notes for when running:
-- Run off start.py
-- spotify_api_interpreter.py requires another python module titled "client_cred.py" with two variables:
-- - client_id = Client ID to access Spotify Web API Servers
-- - client_secret = Client Secret to access Spotify Web API Servers
+Future compatibility with Twitch API is expected, currently finding a work-around as their API is not Desktop-Application friendly.
